@@ -1,0 +1,19 @@
+{
+    "name": "imaginalis/ckeditor",
+    "description": "Yii 2 CKEditor & KCFinder integration",
+    "type": "yii2-extension",
+    "require": {
+		"ckeditor/ckeditor": "dev-full/stable",
+		"sunhater/kcfinder": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "imaginalis\\ckeditor\\": "src"
+        }
+    },
+    "extra": {
+        "asset-installer-paths": {
+            "bower-asset-library": "vendor/bower"
+        }
+    }
+}
