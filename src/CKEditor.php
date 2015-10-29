@@ -84,7 +84,7 @@ class CKEditor extends InputWidget
 				});';
 
 		foreach($this->plugins as $plugin)
-			$js[] ='CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/kontot427/imaginalis/src/plugins').'/'.$plugin.'/");';
+			$js[] ='CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/ckeditor/src/plugins').'/'.$plugin.'/");';
 
 		$view->registerJs(implode("\n", $js));
 	}
