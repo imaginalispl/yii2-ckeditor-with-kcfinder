@@ -100,5 +100,7 @@ class CKEditor extends InputWidget
 		];
 
 		$this->clientOptions = ArrayHelper::merge($browseOptions, $this->clientOptions);
+		
+		Yii::$app->session['KCFINDER'] = ['disabled'=>false];
 	}
 }
