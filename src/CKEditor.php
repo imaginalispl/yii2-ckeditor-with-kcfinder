@@ -4,48 +4,41 @@
  * @author Imaginalis Software TM
  * @link http://imaginalis.pl
  */
-
 namespace imaginalis\ckeditor;
 
 use yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\widgets\InputWidget;
 use yii\helpers\Json;
+use yii\widgets\InputWidget;
 
 class CKEditor extends InputWidget
 {
-
 	public $plugins = [
 		'youtube',
 	];
 
 	public $toolbars = [
-		'full' => [
+		'custom'=>[
 			'height'=>400,
 			'toolbarGroups'=>[
-				['name'=>'document','groups'=>['mode','document','doctools']],
-				['name'=>'clipboard','groups'=>['clipboard','undo']],
-				['name'=>'editing','groups'=>['find','selection','spellchecker']],
-				['name'=>'forms'],
+				['name'=>'basicstyles', 'groups'=>['basicstyles', 'cleanup']],
+				['name'=>'insert', 'groups'=>['insert']],
+				['name'=>'links', 'groups'=>['links']],
+				['name'=>'paragraph', 'groups'=>['list', 'indent', 'align']],
 				'/',
-				['name'=>'basicstyles','groups'=>['basicstyles','colors','cleanup']],
-				['name'=>'paragraph','groups'=>['list','indent','blocks','align','bidi']],
-				['name'=>'links'],
-				['name'=>'insert'],
-				'/',
-				['name'=>'styles'],
-				['name'=>'blocks'],
-				['name'=>'colors'],
-				['name'=>'tools'],
-				['name'=>'others'],
-			]
-		]
+				['name'=>'styles', 'groups'=>['styles']],
+				['name'=>'colors', 'groups'=>['colors']],
+				['name'=>'clipboard', 'groups'=>['clipboard', 'undo']],
+				['name'=>'document', 'groups'=>['mode']],
+			],
+			'removeButtons'=>'Subscript,Superscript,Scayt,SpecialChar,Smiley,PageBreak,HorizontalRule,Maximize,Blockquote,Styles,Format',
+		],
 	];
 
 	public $clientOptions = [];
 	public $kcfinder = false;
-	public $toolbar = 'full';
+	public $toolbar = 'custom';
 
 	public function init()
 	{
@@ -77,14 +70,14 @@ class CKEditor extends InputWidget
 		$id = $this->options['id'];
 		$options = $this->clientOptions = Json::encode($this->clientOptions);
 
-		$js[] ='CKEDITOR.replace("'.$id.'", '.$options.');
-				CKEDITOR.instances["'.$id.'"].on("change", function(){
+		$js[] = 'CKEDITOR.replace("'.$id.'", '.$options.'); CKEDITOR.instances["'.$id.'"].on("change", function()
+				{
 					CKEDITOR.instances["'.$id.'"].updateElement();
 					$("#"+"'.$id.'").trigger("change");
 				});';
 
 		foreach($this->plugins as $plugin)
-			$js[] ='CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/ckeditor/src/plugins').'/'.$plugin.'/");';
+			$js[] = 'CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/ckeditor/src/plugins').'/'.$plugin.'/");';
 
 		$view->registerJs(implode("\n", $js));
 	}
@@ -100,7 +93,43 @@ class CKEditor extends InputWidget
 		];
 
 		$this->clientOptions = ArrayHelper::merge($browseOptions, $this->clientOptions);
-		
-		Yii::$app->session['KCFINDER'] = ['disabled'=>false];
+
+		if(Yii::$app->session->get('KCFINDER') === null)
+		{
+			$kcfOptions = [
+				'disabled'=>false,
+				'denyZipDownload'=>true,
+				'denyUpdateCheck'=>true,
+				'denyExtensionRename'=>true,
+				'theme'=>'default',
+				'uploadURL'=>ImageManager::getBaseUrl().'/editor',
+				'uploadDir'=>Yii::getAlias('@app/web/uploads').'/editor',
+				'access'=>[
+					'files'=>[
+						'upload'=>true,
+						'delete'=>false,
+						'copy'=>false,
+						'move'=>false,
+						'rename'=>false,
+					],
+					'dirs'=>[
+						'create'=>true,
+						'delete'=>false,
+						'rename'=>false,
+					],
+				],
+				'types'=>[
+					'files'=>[
+						'type'=>'',
+					],
+				],
+				'thumbsDir'=>'.thumbs',
+				'thumbWidth'=>100,
+				'thumbHeight'=>100,
+			];
+
+			// Set kcfinder session options
+			Yii::$app->session->set('KCFINDER', $kcfOptions);
+		}
 	}
 }
