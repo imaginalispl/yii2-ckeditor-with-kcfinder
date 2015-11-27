@@ -6,7 +6,7 @@
  */
 namespace imaginalis\ckeditor;
 
-use yii;
+use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Json;
@@ -21,6 +21,7 @@ class CKEditor extends InputWidget
 	public $toolbars = [
 		'custom'=>[
 			'height'=>400,
+			'extraPlugins'=>'youtube',
 			'toolbarGroups'=>[
 				['name'=>'basicstyles', 'groups'=>['basicstyles', 'cleanup']],
 				['name'=>'insert', 'groups'=>['insert']],
@@ -43,13 +44,12 @@ class CKEditor extends InputWidget
 	public function init()
 	{
 		parent::init();
-		$options = $this->toolbars[$this->toolbar];
-		$this->clientOptions = ArrayHelper::merge($options, $this->clientOptions);
+		$this->clientOptions = ArrayHelper::merge($this->toolbars[$this->toolbar], $this->clientOptions);
 	}
 
 	public function run()
 	{
-		if ($this->hasModel())
+		if($this->hasModel())
 			echo Html::activeTextarea($this->model, $this->attribute, $this->options);
 		else
 			echo Html::textarea($this->name, $this->value, $this->options);
@@ -62,34 +62,27 @@ class CKEditor extends InputWidget
 
 	private function registerPlugin()
 	{
-		$view = $this->getView();
-
-		CKEditorAsset::register($view);
-		PluginsAsset::register($view);
+		CKEditorAsset::register($this->view);
+		PluginsAsset::register($this->view);
 
 		$id = $this->options['id'];
-		$options = $this->clientOptions = Json::encode($this->clientOptions);
+		$this->clientOptions = Json::encode($this->clientOptions);
 
-		$js[] = 'CKEDITOR.replace("'.$id.'", '.$options.'); CKEDITOR.instances["'.$id.'"].on("change", function()
-				{
-					CKEDITOR.instances["'.$id.'"].updateElement();
-					$("#"+"'.$id.'").trigger("change");
-				});';
+		$js = [ 'CKEDITOR.replace("'.$id.'", '.$this->clientOptions.'); CKEDITOR.instances["'.$id.'"].on("change", function() { CKEDITOR.instances["'.$id.'"].updateElement(); $("#"+"'.$id.'").trigger("change"); });' ];
 
 		foreach($this->plugins as $plugin)
 			$js[] = 'CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/ckeditor/src/plugins').'/'.$plugin.'/");';
 
-		$view->registerJs(implode("\n", $js));
+		$this->view->registerJs(implode("\n", $js));
 	}
 
 	protected function registerKCFinder()
 	{
-		$register = KCFinderAsset::register($this->view);
-		$kcfinderUrl = $register->baseUrl;
+		$kcFinderAsset = KCFinderAsset::register($this->view);
 
 		$browseOptions = [
-			'filebrowserBrowseUrl'=>$kcfinderUrl.'/browse.php?opener=ckeditor&type=files',
-			'filebrowserUploadUrl'=>$kcfinderUrl.'/upload.php?opener=ckeditor&type=files',
+			'filebrowserBrowseUrl'=>$kcFinderAsset->baseUrl.'/browse.php?opener=ckeditor&type=files',
+			'filebrowserUploadUrl'=>$kcFinderAsset->baseUrl.'/upload.php?opener=ckeditor&type=files',
 		];
 
 		$this->clientOptions = ArrayHelper::merge($browseOptions, $this->clientOptions);
@@ -102,7 +95,7 @@ class CKEditor extends InputWidget
 				'denyUpdateCheck'=>true,
 				'denyExtensionRename'=>true,
 				'theme'=>'default',
-				'uploadURL'=>ImageManager::getBaseUrl().'/editor',
+				'uploadURL'=>Yii::$app->request->baseUrl.'/uploads/editor',
 				'uploadDir'=>Yii::getAlias('@app/web/uploads').'/editor',
 				'access'=>[
 					'files'=>[
@@ -128,7 +121,6 @@ class CKEditor extends InputWidget
 				'thumbHeight'=>100,
 			];
 
-			// Set kcfinder session options
 			Yii::$app->session->set('KCFINDER', $kcfOptions);
 		}
 	}
