@@ -16,12 +16,12 @@ class CKEditor extends InputWidget
 {
 	public $plugins = [
 		'youtube',
+		'pixabay'
 	];
 
 	public $toolbars = [
 		'custom'=>[
 			'height'=>400,
-			'extraPlugins'=>'youtube',
 			'toolbarGroups'=>[
 				['name'=>'basicstyles', 'groups'=>['basicstyles', 'cleanup']],
 				['name'=>'insert', 'groups'=>['insert']],
@@ -44,6 +44,7 @@ class CKEditor extends InputWidget
 	public function init()
 	{
 		parent::init();
+		$this->toolbars['custom']['extraPlugins'] = implode(',', $this->plugins);
 		$this->clientOptions = ArrayHelper::merge($this->toolbars[$this->toolbar], $this->clientOptions);
 	}
 
@@ -63,15 +64,16 @@ class CKEditor extends InputWidget
 	private function registerPlugin()
 	{
 		CKEditorAsset::register($this->view);
-		PluginsAsset::register($this->view);
+		PixabayAsset::register($this->view);
+		YoutubeAsset::register($this->view);
 
 		$id = $this->options['id'];
 		$this->clientOptions = Json::encode($this->clientOptions);
 
-		$js = [ 'CKEDITOR.replace("'.$id.'", '.$this->clientOptions.'); CKEDITOR.instances["'.$id.'"].on("change", function() { CKEDITOR.instances["'.$id.'"].updateElement(); $("#"+"'.$id.'").trigger("change"); });' ];
+		$js = ['CKEDITOR.replace("'.$id.'", '.$this->clientOptions.'); CKEDITOR.instances["'.$id.'"].on("change", function() { CKEDITOR.instances["'.$id.'"].updateElement(); $("#"+"'.$id.'").trigger("change"); });'];
 
 		foreach($this->plugins as $plugin)
-			$js[] = 'CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/ckeditor/src/plugins').'/'.$plugin.'/");';
+			$js[] = 'CKEDITOR.plugins.addExternal("'.$plugin.'","'.Yii::$app->assetManager->getPublishedUrl('@vendor/imaginalis/yii2-ckeditor-'.$plugin.'-plugin/').'/'.$plugin.'/plugin.js");';
 
 		$this->view->registerJs(implode("\n", $js));
 	}

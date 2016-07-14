@@ -9,10 +9,7 @@ namespace imaginalis\ckeditor;
 
 use yii\web\AssetBundle;
 
-class PluginsAsset extends AssetBundle
+class YoutubeAsset extends AssetBundle
 {
-	public function init()
-	{
-		$this->sourcePath = __DIR__.'/plugins';
-	}
+		public $sourcePath = '@vendor/imaginalis/yii2-ckeditor-youtube-plugin';
 }
